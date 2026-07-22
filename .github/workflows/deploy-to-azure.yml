@@ -1,4 +1,4 @@
-name: Deploy to Azure - Straight to Prod
+name: Deploy to Azure Blue-Green
 
 on:
   push:
@@ -8,17 +8,20 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Azure Login
-      uses: azure/login@v2
+    - uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Update Prod to New Docker Image
+    - name: Deploy to Staging
       run: |
-        az webapp config container set --name quicktill-prod --resource-group rg-quicktill --docker-custom-image-name reginald001/quicktill-demo:latest --docker-registry-server-url https://index.docker.io
-        az webapp restart --name quicktill-prod --resource-group rg-quicktill
+        az webapp config container set --name quicktill-prod --resource-group rg-quicktill --slot staging --docker-custom-image-name reginald001/quicktill-demo:latest --docker-registry-server-url https://index.docker.io
+        az webapp restart --name quicktill-prod --resource-group rg-quicktill --slot staging
 
-    - name: Done
-      run: echo "Deployed to https://quicktill-prod.azurewebsites.net"
+    - name: Health Check Staging
+      run: |
+        sleep 60
+        curl --fail https://quicktill-prod-staging-fvhwa3cgfkcpf5q6.southafricanorth-01.azurewebsites.net/
+
+    - name: Swap to Production
+      run: |
+        az webapp deployment slot swap --name quicktill-prod --resource-group rg-quicktill --slot staging --target-slot production
