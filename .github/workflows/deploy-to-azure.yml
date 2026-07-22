@@ -1,39 +1,29 @@
-name: Deploy to Azure - Blue Green
+name: Deploy to Azure - Blue Green Docker
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  build-and-deploy-staging:
+  deploy-staging:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
 
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
+    - name: Azure Login
+      uses: azure/login@v2
       with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Build and Push
+    - name: Pull New Image to Staging
       run: |
-        docker build --platform linux/amd64 -t reginald001/quicktill-demo:latest .
-        docker push reginald001/quicktill-demo:latest
-
-    - name: Deploy to Staging Slot
-      uses: azure/webapps-deploy@v3
-      with:
-        app-name: 'quicktill-prod'
-        slot-name: 'staging'
-        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_STAGING }}
-
-    - name: Wait for App to Start
-      run: sleep 30
+        az webapp config container set --name quicktill-prod --resource-group rg-quicktill --slot staging --docker-custom-image-name reginald001/quicktill-demo:latest --docker-registry-server-url https://index.docker.io
+        az webapp restart --name quicktill-prod --resource-group rg-quicktill --slot staging
 
     - name: Health Check Staging
       run: |
-        curl --fail https://quicktill-prod-staging.azurewebsites.net/health || curl --fail https://quicktill-prod-staging.azurewebsites.net/
+        sleep 40
+        curl --fail https://quicktill-prod-staging.azurewebsites.net/
 
     - name: Swap to Production
       run: |
