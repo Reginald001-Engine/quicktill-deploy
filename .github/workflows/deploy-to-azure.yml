@@ -18,8 +18,20 @@ jobs:
         az webapp config container set --name quicktill-prod --resource-group rg-quicktill --slot staging --docker-custom-image-name reginald001/quicktill-demo:latest --docker-registry-server-url https://index.docker.io
         az webapp restart --name quicktill-prod --resource-group rg-quicktill --slot staging
 
-    - name: Wait for Staging to Start
-      run: sleep 60
+    - name: Health Check Staging
+      run: |
+        echo "Checking staging slot health..."
+        for i in {1..10}; do
+          STATUS=$(az webapp show --name quicktill-prod --resource-group rg-quicktill --slot staging --query "state" -o tsv)
+          echo "Attempt $i: Staging state = $STATUS"
+          if [ "$STATUS" == "Running" ]; then
+            echo "Staging is Running and Healthy"
+            exit 0
+          fi
+          sleep 30
+        done
+        echo "Staging did not become healthy"
+        exit 1
 
     - name: Swap to Production
       run: |
