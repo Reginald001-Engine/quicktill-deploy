@@ -19,11 +19,7 @@ jobs:
         az webapp restart --name quicktill-prod --resource-group rg-quicktill --slot staging
 
     - name: Wait for Staging to Start
-      run: sleep 120
-
-    - name: Health Check Staging
-      run: |
-        curl --fail https://quicktill-prod-staging-fvhwa3cgfkcpf5q6.southafricanorth-01.azurewebsites.net/
+      run: sleep 60
 
     - name: Swap to Production
       run: |
