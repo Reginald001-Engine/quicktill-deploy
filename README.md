@@ -1,5 +1,8 @@
 CHAPTER 1
+
 1. CLIENT BRIEF - SOLUTION SUMMARY:
+
+
 To meet the Friday deadline with zero downtime, we implemented Blue-Green deployment using Azure App Service Deployment Slots. The new code is deployed to a `staging` green slot with 0% traffic. A mandatory automated health-check gate validates the real checkout flow before an atomic slot swap moves 100% traffic to the new version. If the gate fails, the swap will not happen. If a bug is found post-swap, an instant rollback swaps will occur back to the old version in staging. The entire process is automated in GitHub Actions for easy repeatability.
 
 
@@ -7,7 +10,9 @@ To meet the Friday deadline with zero downtime, we implemented Blue-Green deploy
 
 
 CHAPTER 2
+
 2. PHASE 0: MY DESIGN WORKSHEET
+
 2.1 Health check definition:This also called the "Green Gate"
 
 My Goal: my goal is to Prove the new version can actually take money before we send real customers to it and traffic is ONLY allowed to swap if ALL of the following conditions pass against the staging slot:
@@ -125,5 +130,7 @@ The Fix: I added `DB_CONNECTION_STRING` to staging slot settings and marked it a
 
 
 CHAPTER 5
+
 5.1 My Design reflection: 
+
 My  Phase 0 design made this failure easier to catch because the health gate tested `state: Running` which fails if the app crashes on startup due to bad config. Without this gate the bad config would have gone to customers. To improve the design, I would add health check #4 to validate secrets by calling a `/health/config` endpoint that confirms it can connect with current keys.
