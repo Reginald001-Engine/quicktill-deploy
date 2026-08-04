@@ -64,10 +64,17 @@ The following are 3 ways this can go incredibly wrong to a point of frustration
 
 
 CHAPTER 3
+
 3. BUILD TASKS
+
+
+   
 3.1. Containerizing the app with Docker
+
+
 3.2. Setting up Azure App Service with staging and production slot:
 I created `quicktill-prod` App Service. Added `staging` deployment slot and both slots run the same App Service Plan. 
+
 3.3. GitHub Actions workflow with health-check gate
 The workflow deploys to staging, runs the 4-part health check, and only swaps if it passes below is my.
 name: Deploy to Azure Blue-Green
